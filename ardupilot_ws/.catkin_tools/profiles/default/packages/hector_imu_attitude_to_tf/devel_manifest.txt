@@ -1,0 +1,6 @@
+hector_slam/hector_imu_attitude_to_tf
+/home/snkt/ardupilot_ws/devel/.private/hector_imu_attitude_to_tf/cmake.lock /home/snkt/ardupilot_ws/devel/./cmake.lock
+/home/snkt/ardupilot_ws/devel/.private/hector_imu_attitude_to_tf/share/hector_imu_attitude_to_tf/cmake/hector_imu_attitude_to_tfConfig-version.cmake /home/snkt/ardupilot_ws/devel/share/hector_imu_attitude_to_tf/cmake/hector_imu_attitude_to_tfConfig-version.cmake
+/home/snkt/ardupilot_ws/devel/.private/hector_imu_attitude_to_tf/share/hector_imu_attitude_to_tf/cmake/hector_imu_attitude_to_tfConfig.cmake /home/snkt/ardupilot_ws/devel/share/hector_imu_attitude_to_tf/cmake/hector_imu_attitude_to_tfConfig.cmake
+/home/snkt/ardupilot_ws/devel/.private/hector_imu_attitude_to_tf/lib/hector_imu_attitude_to_tf/imu_attitude_to_tf_node /home/snkt/ardupilot_ws/devel/lib/hector_imu_attitude_to_tf/imu_attitude_to_tf_node
+/home/snkt/ardupilot_ws/devel/.private/hector_imu_attitude_to_tf/lib/pkgconfig/hector_imu_attitude_to_tf.pc /home/snkt/ardupilot_ws/devel/lib/pkgconfig/hector_imu_attitude_to_tf.pc

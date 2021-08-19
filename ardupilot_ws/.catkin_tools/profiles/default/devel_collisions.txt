@@ -1,0 +1,1 @@
+/home/snkt/ardupilot_ws/devel/./cmake.lock 52
