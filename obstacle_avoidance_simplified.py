@@ -25,8 +25,13 @@ obs_staticx = 0.0
 obs_staticy = 0.0
 obs_staticyaw = 0.0
 
-goal_y = 11
-goal_x = 11
+goal_y = 15
+goal_x = 0
+
+f1 = True
+f2 = True
+nnn = 0
+cc = True
 
 # Flight modes class
 # Flight modes are activated using ROS services
@@ -38,7 +43,7 @@ class fcuModes:
         rospy.wait_for_service('mavros/cmd/takeoff')
         try:
             takeoffService = rospy.ServiceProxy('mavros/cmd/takeoff', mavros_msgs.srv.CommandTOL)
-            takeoffService(altitude = 10)
+            takeoffService(altitude = 1.5)
             print("Hello")
         except rospy.ServiceException as e:
             print("Service takeoff call failed: %s"%e)
@@ -107,11 +112,15 @@ class Controller:
         
         # Instantiate a setpoints message
         self.sp = PositionTarget()
+
+        self.tt = AttitudeTarget()
         
         # set the flag to use position setpoints and yaw angle
         self.sp.type_mask =  PositionTarget.IGNORE_VZ \
                              + PositionTarget.IGNORE_AFX + PositionTarget.IGNORE_AFY + PositionTarget.IGNORE_AFZ \
                              + PositionTarget.IGNORE_YAW_RATE
+
+        #self.tt.type_mask = AttitudeTarget.IGNORE_ROLL_RATE + AttitudeTarget.IGNORE_PITCH_RATE + AttitudeTarget.IGNORE_YAW_RATE + AttitudeTarget.IGNORE_Thrust
         
         # LOCAL_NED
         self.sp.coordinate_frame = 1
@@ -120,8 +129,12 @@ class Controller:
         self.pose = [0.0, 0.0]
 
         # We will fly at a fixed altitude for now
+        #self.tt.orientation.x = 0.0
+        #self.tt.orientation.y = 0.0
+        #self.tt.orientation.z = 0.0
+        #self.tt.orientation.w = 0.0
         # Altitude setpoint, [meters]
-        self.ALT_SP = 5.0
+        self.ALT_SP = 1.5
         
         # update the setpoint message with the required altitude
         self.sp.position.z = self.ALT_SP
@@ -135,6 +148,7 @@ class Controller:
         self.sp.yaw = 1.571
         self.sp.velocity.x = 1
         self.sp.velocity.y = 1
+        self.yawc = 0.0
 
         # speed of the drone is set using MPC_XY_CRUISE parameter in MAVLink
         # using QGroundControl. By default it is 5 m/s.
@@ -155,6 +169,7 @@ class Controller:
         self.local_pos.x = msg.pose.position.x
         self.local_pos.y = msg.pose.position.y
         self.local_pos.z = msg.pose.position.z
+        self.yawc = msg.pose.orientation.z
     ## Drone State callback
     def stateCb(self, msg):
         self.state = msg
@@ -175,50 +190,88 @@ class Controller:
 
     
     def updateSp(self):
-        global x_cor,y_cor,yaw_rate,flag, obs_staticy, obs_staticx, obs_staticyaw, fl2, newx, newy
+        global x_cor,y_cor,yaw_rate,flag, obs_staticy, obs_staticx, obs_staticyaw, fl2, newx, newy, f2, f1, cc, nnn
         yaw_chk = 1.571 +  math.atan((goal_x-self.local_pos.x)/(goal_y-self.local_pos.y))
         
-        self.sp.velocity.x = 1
-        self.sp.velocity.y = 1
+        #self.sp.velocity.x = 1
+        #self.sp.velocity.y = 1
         
 
-
-        if self.data[1] <= 3 and goal_y < self.data[1]:
-            self.sp.velocity.x = 1
-            self.sp.velocity.y = 1
+        #if self.data[1] <= 3 and self.data[0] <= 3 and self.data[2] <= 3:
+        #    if self.local_pos.y - 0.5 <= self.sp.position.y <= self.local_pos.y + 0.5:
+        #                self.sp.position.y -= 1.5
+        
+        if self.data[1] <= 3.5 and goal_y < self.data[1]:
+            #self.sp.velocity.x = 1
+            #self.sp.velocity.y = 1
             self.sp.position.y = goal_y
+            f1 = True
+            f2 = True
             #self.sp.position.x = goal_x
         
-        elif goal_y > 3:
-            if self.data[1] > 3:
+        elif goal_y > 3.5:
+            print(self.data[1])
+            if self.data[1] > 3.5 or self.data[1] > 3:
+                print("1st")
+                f1 = True
+                f2 = True
                 if flag:
-                    self.sp.velocity.x = 1
-                    self.sp.velocity.y = 1
+                    #self.sp.velocity.x = 1
+                    #self.sp.velocity.y = 1
                     self.sp.position.y = goal_y
-                    self.sp.position.x = self.local_pos.x + 1
+                    self.sp.position.x = goal_x
                     if self.local_pos.y == goal_y:
                         flag = False 
                 else:
-                    self.sp.velocity.x = 1
-                    self.sp.velocity.y = 1
+                    nnn = 0
+                    #self.sp.velocity.x = 1
+                    #self.sp.velocity.y = 1
                     self.sp.yaw = yaw_chk
                     self.sp.position.y = goal_y
                     self.sp.position.x = goal_x
                 self.pose[0] = self.local_pos.x
                 self.pose[1] = self.local_pos.y
                 self.pose[1] = self.local_pos.y + 0.8
-            elif 0.8 <= self.data[1] <= 3:
-                self.sp.velocity.x = 1
-                self.sp.velocity.y = 1
-                self.sp.position.y = self.pose[1]
-                if self.data[0] >= 3:
+
+
+
+            elif 0.1 <= self.data[1] <= 3.6:
+                #self.sp.velocity.x = 1
+                #self.sp.velocity.y = 1
+                if nnn <= 7:
+                    self.sp.position.y = -30
+                    nnn += 1
+                else:
+                    self.sp.position.y = self.pose[1] + 1.5
+                    
+                # self.pose_check(self.pose[1])
+                if self.data[2] <= 2 and self.data[1] <= 2:
+                    f1 = True
+                    f2 = False
+
+                elif self.data[0] <= 2 and self.data[1] <= 2:
+                    f2 = True
+                    f1 = False
+
+                if self.data[0] >= 2 and f1:
                     if self.local_pos.x - 0.5 <= self.sp.position.x <= self.local_pos.x + 0.5:
-                        self.sp.position.x += 1
-                        flag = True
-                elif self.data[2] >= 3:
+                        self.sp.position.x += 1.5
+                        flag = False
+                        f2 = False
+                elif self.data[2] >= 2 and f2:
                     if self.local_pos.x - 0.5 <= self.sp.position.x <= self.local_pos.x + 0.5:
-                        self.sp.position.x -= 1
-                        flag = True
+                        self.sp.position.x -= 1.5
+                        flag = False
+                        f1 = False
+
+    def pose_check(self, x):
+        if self.sp.position.y - 0.2 <= self.local_pos.y <= self.sp.position.y + 0.2:
+            self.sp.position.y = x
+
+        else:
+            self.sp.position.y = x
+            time.sleep(2)
+            self.pose_check(x)
 
 
 
@@ -274,6 +327,7 @@ def main():
 
     # Setpoint publisher    
     sp_pub = rospy.Publisher('mavros/setpoint_raw/local', PositionTarget, queue_size=1)
+    qua_pub = rospy.Publisher('mavros/setpoint_raw/attitude', AttitudeTarget, queue_size=1)
 
     # Make sure the drone is armed
 
